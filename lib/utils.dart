@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 Future<String?> get localPath async {
-  final directory = await getExternalStorageDirectory();
+  final directory = await getDownloadsDirectory();
 
-  final checkPathExistence = await Directory(directory?.path ?? '').exists();
+  final checkPathExistence =
+      await Directory('/storage/emulated/0/Download').exists();
 
   if (checkPathExistence) {
-    return directory?.path;
+    return '/storage/emulated/0/Download';
   }
 
   return null;
@@ -21,9 +22,6 @@ Future<File> get localFile async {
 
 writeFile(String bytes) async {
   final file = await localFile;
-
-  print('Path: ${file.path}');
-
   // Write the file
   file.writeAsString(bytes);
 }

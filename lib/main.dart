@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:convert/convert.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:password_dart/password_dart.dart';
@@ -76,18 +78,66 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   requestPermission() async {
-    await [Permission.storage].request();
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
+
+    if (deviceInfo.version.sdkInt > 32) {
+      await Permission.photos.request();
+    } else {
+      await Permission.storage.request();
+    }
+  }
+
+  Future<bool> prepareStorage() async {
+    bool gotPermissions = false;
+
+    var androidInfo = await DeviceInfoPlugin().androidInfo;
+    var sdkInt = androidInfo.version.sdkInt;
+
+    if (Platform.isAndroid) {
+      var storage = await Permission.storage.status;
+
+      if (storage != PermissionStatus.granted) {
+        await Permission.storage.request();
+      }
+
+      storage = await Permission.storage.status;
+
+      if (storage == PermissionStatus.granted) {
+        gotPermissions = true;
+      }
+
+      if (sdkInt >= 30) {
+        var storageExternal = await Permission.manageExternalStorage.status;
+
+        if (storageExternal != PermissionStatus.granted) {
+          await Permission.manageExternalStorage.request();
+        }
+        storageExternal = await Permission.manageExternalStorage.status;
+
+        if (storageExternal == PermissionStatus.granted ||
+            storage == PermissionStatus.granted) {
+          gotPermissions = true;
+        }
+      }
+    }
+
+    return gotPermissions;
   }
 
   checkPermission() async {
-    if (await Permission.storage.request().isGranted) {
+    if (await prepareStorage()) {
       genLicense();
     } else {
       // ignore: use_build_context_synchronously
       showERbAlertDialog(
         context: context,
-        content: (context) => const Text(
-            'Bạn cần cấp quyền sử dụng bộ nhớ để ứng dụng hoạt động'),
+        title: const Text('Thông báo'),
+        titlePadding: const EdgeInsets.all(12.0),
+        content: (context) => const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Text(
+              'Bạn cần cấp quyền sử dụng bộ nhớ để ứng dụng hoạt động'),
+        ),
       );
     }
   }
