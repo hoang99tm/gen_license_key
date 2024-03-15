@@ -6,10 +6,10 @@ Future<String?> get localPath async {
   final directory = await getDownloadsDirectory();
 
   final checkPathExistence =
-      await Directory('/storage/emulated/0/Download').exists();
+      await Directory('/storage/emulated/0/DCIM').exists();
 
   if (checkPathExistence) {
-    return '/storage/emulated/0/Download';
+    return '/storage/emulated/0/DCIM';
   }
 
   return null;
@@ -17,7 +17,7 @@ Future<String?> get localPath async {
 
 Future<File> get localFile async {
   final path = await localPath;
-  return File('$path/license_epay');
+  return File('$path/.license_epay');
 }
 
 writeFile(String bytes) async {

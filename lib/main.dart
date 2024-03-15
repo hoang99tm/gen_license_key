@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = false;
 
   static const _splitContent = '\$pcks\$64,10000,64\$';
-  static const _password = "GIMggyZCQpDjHvZzBkpYGOz6lj3kejDiKRtgTbuRSYm1X3maoX";
+  var _password = "GIMggyZCQpDjHvZzBkpYGOz6lj3kejDiKRtgTbuRSYm1X3maoX";
 
   genLicense() async {
     setState(() {
@@ -59,8 +59,18 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     // final licenseHashed = Password.hash(_password, PBKDF2(salt: inputSalt));
 
+    await combineIdPassword();
+
     final licenseHashed = await compute(hashData, _password);
     writeLicense(licenseHashed);
+  }
+
+  combineIdPassword() async {
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
+
+    final deviceId = deviceInfo.id;
+    _password =
+        _password.substring(0, _password.length - deviceId.length) + deviceId;
   }
 
   writeLicense(String licenseHashed) async {
